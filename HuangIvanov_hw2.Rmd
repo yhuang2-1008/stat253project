@@ -59,7 +59,7 @@ rideshare %>%
 rideshare %>%
     select(-X)
 
-data_cv17 <- vfold_cv(rideshare, v = 10)
+data_cv17 <- vfold_cv(rideshare, v = 5)
 ```
 
 ```{r}
@@ -78,16 +78,16 @@ lm_lasso_spec <-
 
 ```{r}
 # recipes & workflows
-rideshare_recipe <- recipe(price ~ . , data = rideshare) %>%
+rideshare_recipe <- recipe(price ~ distance, data = rideshare) %>%
     step_nzv(all_predictors()) %>% # removes variables with the same value
-    #step_novel(all_nominal_predictors()) %>% # important if you have rare categorical variables
+    step_novel(all_nominal_predictors()) %>% # important if you have rare categorical variables
     step_normalize(all_numeric_predictors()) %>%  # important standardization step for LASSO
     step_dummy(all_nominal_predictors()) %>%
     step_corr(all_numeric_predictors())
 
-model_wf <- workflow() %>%
-    add_formula(price ~ .) %>%
-    add_model(lm_spec)
+# model_wf <- workflow() %>%
+#     add_formula(price ~ .) %>%
+#     add_model(lm_spec)
 
 lasso_wf_tune <- workflow() %>%
     add_recipe(rideshare_recipe) %>%
@@ -96,13 +96,13 @@ lasso_wf_tune <- workflow() %>%
 
 ```{r}
 # fit & tune models
-mod1_cv <- fit_resamples(model_wf,
+mod1_cv <- fit_resamples(lasso_wf_tune,
                          resamples = data_cv17,
                          metrics = metric_set(rmse, rsq, mae))
 
 penalty_grid <- grid_regular(
     penalty(range = c(-5, 3)), #log10 transformed 10^-5 to 10^3
-    levels = 30)
+    levels = 5)
 
 tune_res <- tune_grid( # new function for tuning parameters
     lasso_wf_tune, # workflow
