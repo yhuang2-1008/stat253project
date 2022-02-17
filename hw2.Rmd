@@ -1,0 +1,128 @@
+---
+title: "Homework 2"
+author: Jennnifer Huang and Eli Ivanov
+output: html_document
+---
+
+
+```{r hw2_setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message = FALSE, warning = FALSE)
+library(dplyr)
+library(readr)
+library(broom)
+library(ggplot2)
+library(tidymodels)
+
+```
+
+### Required Analyses {-}
+
+1. **Initial investigation: ignoring nonlinearity (for now)**
+    a. Use ordinary least squares (OLS) by using the `lm` engine and LASSO (`glmnet` engine) to build  a series of initial regression models for your quantitative outcome as a function of the predictors of interest. (As part of data cleaning, exclude any variables that you don't want to consider as predictors.)
+        - You'll need two model specifications, `lm_spec` and `lm_lasso_spec` (you'll need to tune this one).
+    b. For each set of variables, you'll need a `recipe` with the `formula`, `data`, and pre-processing steps
+        - You may want to have steps in your recipe that remove variables with near zero variance (`step_nzv()`), remove variables that are highly correlated with other variables (`step_corr()`), normalize all quantitative predictors (`step_normalize(all_numeric_predictors())`) and add indicator variables for any categorical variables (`step_dummy(all_nominal_predictors())`).
+        - These models should not include any transformations to deal with nonlinearity. You'll explore this in the next investigation.
+    c. Estimate the test performance of the models using CV. Report and interpret (with units) the CV metric estimates along with a measure of uncertainty in the estimate (`std_error` is readily available when you used `collect_metrics(summarize=TRUE)`).
+        - Compare estimated test performance across the models. Which models(s) might you prefer?
+    d. Use residual plots to evaluate whether some quantitative predictors might be better modeled with nonlinear relationships.
+    e. Which variables do you think are the most important predictors of your quantitative outcome? Justify your answer. Do the methods you've applied reach consensus on which variables are most important? What insights are expected? Surprising?
+        - Note that if some (but not all) of the indicator terms for a categorical predictor are selected in the final models, the whole predictor should be treated as selected.
+
+<br>
+
+#### Your Work {-}
+
+a & b.
+
+```{r}
+# library statements 
+# read in data
+
+```
+
+```{r}
+# data cleaning
+
+```
+
+```{r}
+# creation of cv folds
+
+```
+
+```{r}
+# model spec
+
+```
+
+```{r}
+# recipes & workflows
+
+```
+
+```{r}
+# fit & tune models
+
+```
+
+c.
+
+```{r}
+#  calculate/collect CV metrics
+
+```
+
+ 
+d.
+
+```{r}
+# visual residuals
+
+```
+
+e.
+
+<br>
+
+2. **Summarize investigations**
+    - Decide on an overall best model based on your investigations so far. To do this, make clear your analysis goals. Predictive accuracy? Interpretability? A combination of both?
+
+
+
+<br>
+
+3. **Societal impact**
+    - Are there any harms that may come from your analyses and/or how the data were collected?
+    - What cautions do you want to keep in mind when communicating your work?
+
+
+
+<br><br><br>
+
+
+
+## Reflection {-}
+
+**Ethics: ** Read the article [Automated background checks are deciding who's fit for a home](https://www.theverge.com/platform/amp/2019/2/1/18205174/automation-background-check-criminal-records-corelogic). Write a short (roughly 250 words), thoughtful response about the ideas that the article brings forth. What themes recur from last week's article (on an old Amazon recruiting tool) or movie (Coded Bias)? What aspects are more particular to the context of equity in housing access?
+
+This article resonated with me because I've had bad experiences with landlords for the past two years while at Mac. It really shows that people more often times value their own self-interest so much more than the needs and the basic human respect for others. Both CoreLogic and landlords are kicking around responsibilities that they should take. A theme that this article continues to raise awareness for from the Amazon hiring automation is that technology overlooks nuance in people's history, record, skill sets, and accomplishments and exacerbates inequalities in employment opportunities and housing resources.
+
+CoreLogic uses arrest record database to "recommend" to landlords which prospective tenant they should avoid. They use criminal and arrest history to calculate a single score that tells landlords how much of a risk a prospective tenant could be if they were to rent a unit. This creates huge issues because it could potentially (and it has) violate Fair Housing Act and guidance issued by the Department of Housing and Urban Development for real estate transactions. Prospective tenants who have been denied housing have either a very similar name to someone else who actually have criminal records or who committed a minor (like very minor) crime some decades ago. Nuances like these calls for human judgment calls and more personalized form of screening to examine extenuating circumstances are not being taken into account. Moreover, CoreLogic allows landlords to select certain options about criminal history to screen against. Without a complete history, of course tenants are denied of housing options because they are playing a game that are designed to make them lose.
+
+
+$~$
+$~$
+$~$
+
+**Reflection:** Write a short, thoughtful reflection about how things went this week. Feel free to use whichever prompts below resonate most with you, but don't feel limited to these prompts.
+
+- How are class-related things going? Is there anything that you need from the instructor? What new strategies for watching videos, reading, reviewing, gaining insights from class work have you tried or would like to try?
+- How is group work going? Did you try out any new collaboration strategies with your new group? How did they go?
+- How is your work/life balance going? Did you try out any new activities or strategies for staying well? How did they go?
+
+
+**Self-Assessment:** Before turning in this assignment on Moodle, go to the individual rubric shared with you and complete the self-assessment for the general skills (top section). After "HW2:", assess yourself on each of the general skills. Do feel like you've grown in a particular area since HW1?
+
+Assessing yourself is hard. We must practice this skill. These "grades" you give yourself are intended to have you stop and think about your learning as you grow and develop the general skills and deepen your understanding of the course topics. These grades do not map directly to a final grade. 
+
