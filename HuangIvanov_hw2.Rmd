@@ -38,8 +38,7 @@ library(broom)
 library(ggplot2)
 library(tidymodels)
 
-rideshare <- read.csv("rideshare.csv") %>% 
-  select(-X)
+rideshare <- read.csv("Energy
 
 ```
 
