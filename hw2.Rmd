@@ -7,12 +7,6 @@ output: html_document
 
 ```{r hw2_setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE, message = FALSE, warning = FALSE)
-library(dplyr)
-library(readr)
-library(broom)
-library(ggplot2)
-library(tidymodels)
-
 ```
 
 ### Required Analyses {-}
@@ -35,14 +29,25 @@ library(tidymodels)
 
 a & b.
 
-```{r}
+```{r, warning = FALSE, message = FALSE, echo = FALSE}
 # library statements 
 # read in data
+library(dplyr)
+library(readr)
+library(broom)
+library(ggplot2)
+library(tidymodels)
 
+rideshare <- read.csv("rideshare.csv")
 ```
 
-```{r}
+```{r, eval = FALSE, warning = FALSE, message = FALSE, echo = FALSE}
 # data cleaning
+# We had to clean up the csv in a separate non-GitHub related rmd because file was too big
+# This is just a record of the code that we used to clean up the large data set
+
+rideshare %>%
+select(-id, -timestamp, -datetime, -timezone, -product_id, -surge_multiplier, -apparentTemperature, -long_summary,  -precipIntensity, -windGustTime, -temperatureHigh, -temperatureHighTime, -temperatureLow, -temperatureLowTime, -apparentTemperatureHigh, -apparentTemperatureHighTime, -apparentTemperatureLow, -apparentTemperatureLowTime, -icon, -dewPoint, -pressure, -windBearing, -cloudCover, -uvIndex, -visibility.1, -ozone, -sunriseTime, -sunsetTime, -moonPhase, -precipIntensityMax, -uvIndexTime, -temperatureMin, -temperatureMinTime, -temperatureMax, -temperatureMaxTime, -apparentTemperatureMin, -apparentTemperatureMax, -apparentTemperatureMinTime, -apparentTemperatureMaxTime)
 
 ```
 
