@@ -37,14 +37,33 @@ library(readr)
 library(broom)
 library(ggplot2)
 library(tidymodels)
+library(readxl)
 
-rideshare <- read.csv("Energy
+nba <- read_excel("NBA Player Data and All Star Votes Jan10.xlsx") %>% 
+  select(-Player, -Tm, -"All-Star Votes")
+
+
+nba$Pos[nba$Pos=="PG"] <- 1
+nba$Pos[nba$Pos=="SG-PG"] <- 2
+nba$Pos[nba$Pos=="SF"] <- 3
+nba$Pos[nba$Pos=="SG-PF"] <- 4
+nba$Pos[nba$Pos=="SF-PF"] <- 5
+nba$Pos[nba$Pos=="PF"] <- 6
+nba$Pos[nba$Pos=="C"] <- 7
+
+nba$Conference[nba$Conference=="Western"] <- 0
+nba$Conference[nba$Conference=="Eastern"] <- 1
+
+nba$`Position Group`[nba$`Position Group`=="Frontcourt"] <- 0
+nba$`Position Group`[nba$`Position Group`=="Backcourt"] <- 1
+
+
 
 ```
 
 ```{r}
 # creation of cv folds
-cv10 <- vfold_cv(rideshare, v = 10)
+cv10 <- vfold_cv(nba, v = 10)
 ```
 
 ```{r}
@@ -68,10 +87,10 @@ penalty_grid <- grid_regular(
 
 ```{r}
 # recipes & workflows
-ride_recipe <- recipe(price ~ hour+day+month+distance+temperature, data = rideshare) %>%
+ride_recipe <- recipe(MP ~ `TS%` + `TRB%` + `AST%` + `TOV%`, data = nba) %>%
   update_role(all_nominal(), new_role = "ID") %>%
-  update_role(price, new_role = "outcome") %>%
-  update_role(hour,day,month,distance,temperature, new_role = "predictor") %>%
+  update_role(MP, new_role = "outcome") %>%
+  update_role(`TS%`,`TRB%`,`AST%`,`TOV%`, new_role = "predictor") %>%
     step_nzv(all_predictors()) %>% # removes variables with the same value
     step_novel(all_nominal_predictors()) %>% # important if you have rare categorical variables
     step_normalize(all_numeric_predictors()) %>%  # important standardization step for LASSO
@@ -81,8 +100,7 @@ lasso_wf_tune <- workflow() %>%
     add_recipe(ride_recipe) %>%
     add_model(lm_lasso_spec)
 
-tmp <- fit(lasso_wf_tune, data = rideshare)
-tmp %>% tidy()
+tmp <- fit(lasso_wf_tune, data = nba)
 ```
 
 ```{r}
