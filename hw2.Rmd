@@ -53,22 +53,63 @@ select(-id, -timestamp, -datetime, -timezone, -product_id, -surge_multiplier, -a
 
 ```{r}
 # creation of cv folds
-
+data_cv29 <- vfold_cv(rideshare, v =29)
 ```
 
 ```{r}
 # model spec
+lm_spec <-
+    linear_reg() %>%
+    set_engine(engine = 'lm') %>%
+    set_mode('regression')
 
+lm_lasso_spec <-
+    linear_reg() %>%
+    set_args(mixture = 1, penalty = tune()) %>%
+    set_engine(engine = 'glmnet') %>%
+    set_mode('regression')
 ```
 
 ```{r}
 # recipes & workflows
+rideshare_recipe <- recipe(price ~ . , data = rideshare) %>%
+    step_nzv(all_predictors()) %>% # removes variables with the same value
+    step_novel(all_nominal_predictors()) %>% # important if you have rare categorical variables
+    step_normalize(all_numeric_predictors()) %>%  # important standardization step for LASSO
+    step_dummy(all_nominal_predictors())
 
+model_wf <- workflow() %>%
+    add_formula(price ~ cab_type + distance) %>%
+    add_model(lm_spec)
+
+lasso_wf_tune <- workflow() %>%
+    add_recipe(rideshare_recipe) %>%
+    add_model(lm_lasso_spec)
 ```
 
 ```{r}
 # fit & tune models
+mod1_cv <- fit_resamples(model_wf,
+                         resamples = data_cv29,
+                         metrics = metric_set(rmse, rsq, mae))
 
+penalty_grid <- grid_regular(
+    penalty(range = c(-5, 3)), #log10 transformed 10^-5 to 10^3
+    levels = 30)
+
+tune_res <- tune_grid( # new function for tuning parameters
+    lasso_wf_tune, # workflow
+    resamples = data_cv29, # cv folds
+    metrics = metric_set(rmse, mae),
+    grid = penalty_grid) # penalty grid defined above
+
+autoplot(tune_res) + theme_classic()
+
+collect_metrics(tune_res) %>%
+    filter(.metric == 'rmse') %>% # or choose mae
+    select(penalty, rmse = mean)
+
+best_penalty <- select_best(tune_res, metric = 'rmse')
 ```
 
 c.
@@ -101,33 +142,4 @@ e.
     - Are there any harms that may come from your analyses and/or how the data were collected?
     - What cautions do you want to keep in mind when communicating your work?
 
-
-
-<br><br><br>
-
-
-
-## Reflection {-}
-
-**Ethics: ** Read the article [Automated background checks are deciding who's fit for a home](https://www.theverge.com/platform/amp/2019/2/1/18205174/automation-background-check-criminal-records-corelogic). Write a short (roughly 250 words), thoughtful response about the ideas that the article brings forth. What themes recur from last week's article (on an old Amazon recruiting tool) or movie (Coded Bias)? What aspects are more particular to the context of equity in housing access?
-
-This article resonated with me because I've had bad experiences with landlords for the past two years while at Mac. It really shows that people more often times value their own self-interest so much more than the needs and the basic human respect for others. Both CoreLogic and landlords are kicking around responsibilities that they should take. A theme that this article continues to raise awareness for from the Amazon hiring automation is that technology overlooks nuance in people's history, record, skill sets, and accomplishments and exacerbates inequalities in employment opportunities and housing resources.
-
-CoreLogic uses arrest record database to "recommend" to landlords which prospective tenant they should avoid. They use criminal and arrest history to calculate a single score that tells landlords how much of a risk a prospective tenant could be if they were to rent a unit. This creates huge issues because it could potentially (and it has) violate Fair Housing Act and guidance issued by the Department of Housing and Urban Development for real estate transactions. Prospective tenants who have been denied housing have either a very similar name to someone else who actually have criminal records or who committed a minor (like very minor) crime some decades ago. Nuances like these calls for human judgment calls and more personalized form of screening to examine extenuating circumstances are not being taken into account. Moreover, CoreLogic allows landlords to select certain options about criminal history to screen against. Without a complete history, of course tenants are denied of housing options because they are playing a game that are designed to make them lose.
-
-
-$~$
-$~$
-$~$
-
-**Reflection:** Write a short, thoughtful reflection about how things went this week. Feel free to use whichever prompts below resonate most with you, but don't feel limited to these prompts.
-
-- How are class-related things going? Is there anything that you need from the instructor? What new strategies for watching videos, reading, reviewing, gaining insights from class work have you tried or would like to try?
-- How is group work going? Did you try out any new collaboration strategies with your new group? How did they go?
-- How is your work/life balance going? Did you try out any new activities or strategies for staying well? How did they go?
-
-
-**Self-Assessment:** Before turning in this assignment on Moodle, go to the individual rubric shared with you and complete the self-assessment for the general skills (top section). After "HW2:", assess yourself on each of the general skills. Do feel like you've grown in a particular area since HW1?
-
-Assessing yourself is hard. We must practice this skill. These "grades" you give yourself are intended to have you stop and think about your learning as you grow and develop the general skills and deepen your understanding of the course topics. These grades do not map directly to a final grade. 
 
