@@ -38,9 +38,21 @@ library(broom)
 library(ggplot2)
 library(tidymodels)
 library(readxl)
+library(ISLR)
 
 nba <- read_excel("NBA Player Data and All Star Votes Jan10.xlsx") %>% 
   select(-Player, -Tm, -"All-Star Votes")
+
+covid <- read.csv("owid-covid-data.csv")
+
+cars2018 <- read_csv("https://raw.githubusercontent.com/juliasilge/supervised-ML-case-studies-course/master/data/cars2018.csv")
+cars2018 <- cars2018 %>%
+    select(-model_index)
+
+college_clean <- College %>% 
+    mutate(school = rownames(College)) %>% # creates variable with school name
+    filter(Grad.Rate <= 100) # Remove one school with grad rate of 118%
+rownames(college_clean) <- NULL # Remove school names as row names
 
 
 nba$Pos[nba$Pos=="PG"] <- 1
@@ -50,6 +62,7 @@ nba$Pos[nba$Pos=="SG-PF"] <- 4
 nba$Pos[nba$Pos=="SF-PF"] <- 5
 nba$Pos[nba$Pos=="PF"] <- 6
 nba$Pos[nba$Pos=="C"] <- 7
+nba$Pos[nba$Pos=="SG"] <- 8
 
 nba$Conference[nba$Conference=="Western"] <- 0
 nba$Conference[nba$Conference=="Eastern"] <- 1
@@ -57,13 +70,11 @@ nba$Conference[nba$Conference=="Eastern"] <- 1
 nba$`Position Group`[nba$`Position Group`=="Frontcourt"] <- 0
 nba$`Position Group`[nba$`Position Group`=="Backcourt"] <- 1
 
-
-
 ```
 
 ```{r}
 # creation of cv folds
-cv10 <- vfold_cv(nba, v = 10)
+cv10 <- vfold_cv(college_clean, v = 10)
 ```
 
 ```{r}
@@ -87,10 +98,10 @@ penalty_grid <- grid_regular(
 
 ```{r}
 # recipes & workflows
-ride_recipe <- recipe(MP ~ `TS%` + `TRB%` + `AST%` + `TOV%`, data = nba) %>%
+ride_recipe <- recipe(Grad.Rate ~ Terminal + Expend + Private, data = college_clean) %>%
   update_role(all_nominal(), new_role = "ID") %>%
-  update_role(MP, new_role = "outcome") %>%
-  update_role(`TS%`,`TRB%`,`AST%`,`TOV%`, new_role = "predictor") %>%
+  update_role(Grad.Rate, new_role = "outcome") %>%
+  update_role(Terminal, Expend, Private, new_role = "predictor") %>%
     step_nzv(all_predictors()) %>% # removes variables with the same value
     step_novel(all_nominal_predictors()) %>% # important if you have rare categorical variables
     step_normalize(all_numeric_predictors()) %>%  # important standardization step for LASSO
@@ -100,7 +111,9 @@ lasso_wf_tune <- workflow() %>%
     add_recipe(ride_recipe) %>%
     add_model(lm_lasso_spec)
 
-tmp <- fit(lasso_wf_tune, data = nba)
+
+tmp <- fit(lasso_wf_tune, data = college_clean)
+tmp %>% tidy()
 ```
 
 ```{r}
@@ -116,8 +129,8 @@ collect_metrics(tune_res) %>%
     select(penalty, rmse = mean)
 
 mod1_cv <- fit_resamples(lasso_wf_tune,
-                         resamples = cv10,
-                         metrics = metric_set(rmse, rsq, mae))
+  resamples = cv10,
+  metrics = metric_set(rmse, rsq, mae))
 
 autoplot(tune_res) + theme_classic()
 
@@ -128,6 +141,14 @@ c.
 
 ```{r}
 #  calculate/collect CV metrics
+lasso_wf_tune <- workflow() %>%
+    add_recipe(ride_recipe) %>%
+    add_model(lm_lasso_spec)
+
+
+mod1_cv <- fit_resamples(lasso_wf_tune,
+                         resamples = cv10,
+                         metrics = metric_set(rmse, rsq, mae))
 
 ```
 
