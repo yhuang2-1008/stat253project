@@ -47,13 +47,19 @@ rideshare <- read.csv("rideshare.csv")
 # This is just a record of the code that we used to clean up the large data set
 
 rideshare %>%
-select(-id, -timestamp, -datetime, -timezone, -product_id, -surge_multiplier, -apparentTemperature, -long_summary,  -precipIntensity, -windGustTime, -temperatureHigh, -temperatureHighTime, -temperatureLow, -temperatureLowTime, -apparentTemperatureHigh, -apparentTemperatureHighTime, -apparentTemperatureLow, -apparentTemperatureLowTime, -icon, -dewPoint, -pressure, -windBearing, -cloudCover, -uvIndex, -visibility.1, -ozone, -sunriseTime, -sunsetTime, -moonPhase, -precipIntensityMax, -uvIndexTime, -temperatureMin, -temperatureMinTime, -temperatureMax, -temperatureMaxTime, -apparentTemperatureMin, -apparentTemperatureMax, -apparentTemperatureMinTime, -apparentTemperatureMaxTime)
+    select(-id, -timestamp, -datetime, -timezone, -product_id, -surge_multiplier, -apparentTemperature, -long_summary,  -precipIntensity, -windGustTime, -temperatureHigh, -temperatureHighTime, -temperatureLow, -temperatureLowTime, -apparentTemperatureHigh, -apparentTemperatureHighTime, -apparentTemperatureLow, -apparentTemperatureLowTime, -icon, -dewPoint, -pressure, -windBearing, -cloudCover, -uvIndex, -visibility.1, -ozone, -sunriseTime, -sunsetTime, -moonPhase, -precipIntensityMax, -uvIndexTime, -temperatureMin, -temperatureMinTime, -temperatureMax, -temperatureMaxTime, -apparentTemperatureMin, -apparentTemperatureMax, -apparentTemperatureMinTime, -apparentTemperatureMaxTime)
+
+rideshare %>%
+    select(-X)
 
 ```
 
 ```{r}
 # creation of cv folds
-data_cv29 <- vfold_cv(rideshare, v =29)
+rideshare %>%
+    select(-X)
+
+data_cv17 <- vfold_cv(rideshare, v = 17)
 ```
 
 ```{r}
@@ -79,7 +85,7 @@ rideshare_recipe <- recipe(price ~ . , data = rideshare) %>%
     step_dummy(all_nominal_predictors())
 
 model_wf <- workflow() %>%
-    add_formula(price ~ cab_type + distance) %>%
+    add_formula(price ~ .) %>%
     add_model(lm_spec)
 
 lasso_wf_tune <- workflow() %>%
@@ -90,7 +96,7 @@ lasso_wf_tune <- workflow() %>%
 ```{r}
 # fit & tune models
 mod1_cv <- fit_resamples(model_wf,
-                         resamples = data_cv29,
+                         resamples = data_cv17,
                          metrics = metric_set(rmse, rsq, mae))
 
 penalty_grid <- grid_regular(
@@ -99,15 +105,15 @@ penalty_grid <- grid_regular(
 
 tune_res <- tune_grid( # new function for tuning parameters
     lasso_wf_tune, # workflow
-    resamples = data_cv29, # cv folds
+    resamples = data_cv17, # cv folds
     metrics = metric_set(rmse, mae),
     grid = penalty_grid) # penalty grid defined above
-
-autoplot(tune_res) + theme_classic()
 
 collect_metrics(tune_res) %>%
     filter(.metric == 'rmse') %>% # or choose mae
     select(penalty, rmse = mean)
+
+autoplot(tune_res) + theme_classic()
 
 best_penalty <- select_best(tune_res, metric = 'rmse')
 ```
