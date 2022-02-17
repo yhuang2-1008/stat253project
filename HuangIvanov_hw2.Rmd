@@ -38,28 +38,14 @@ library(broom)
 library(ggplot2)
 library(tidymodels)
 
-rideshare <- read.csv("rideshare.csv")
-```
-
-```{r, eval = FALSE, warning = FALSE, message = FALSE, echo = FALSE}
-# data cleaning
-# We had to clean up the csv in a separate non-GitHub related rmd because file was too big
-# This is just a record of the code that we used to clean up the large data set
-
-rideshare %>%
-    select(-id, -timestamp, -datetime, -timezone, -product_id, -surge_multiplier, -apparentTemperature, -long_summary,  -precipIntensity, -windGustTime, -temperatureHigh, -temperatureHighTime, -temperatureLow, -temperatureLowTime, -apparentTemperatureHigh, -apparentTemperatureHighTime, -apparentTemperatureLow, -apparentTemperatureLowTime, -icon, -dewPoint, -pressure, -windBearing, -cloudCover, -uvIndex, -visibility.1, -ozone, -sunriseTime, -sunsetTime, -moonPhase, -precipIntensityMax, -uvIndexTime, -temperatureMin, -temperatureMinTime, -temperatureMax, -temperatureMaxTime, -apparentTemperatureMin, -apparentTemperatureMax, -apparentTemperatureMinTime, -apparentTemperatureMaxTime)
-
-rideshare %>%
-    select(-X)
+rideshare <- read.csv("rideshare.csv") %>% 
+  select(-X)
 
 ```
 
 ```{r}
 # creation of cv folds
-rideshare %>%
-    select(-X)
-
-data_cv17 <- vfold_cv(rideshare, v = 5)
+cv10 <- vfold_cv(rideshare, v = 10)
 ```
 
 ```{r}
@@ -74,45 +60,47 @@ lm_lasso_spec <-
     set_args(mixture = 1, penalty = tune()) %>%
     set_engine(engine = 'glmnet') %>%
     set_mode('regression')
-```
-
-```{r}
-# recipes & workflows
-rideshare_recipe <- recipe(price ~ distance, data = rideshare) %>%
-    step_nzv(all_predictors()) %>% # removes variables with the same value
-    step_novel(all_nominal_predictors()) %>% # important if you have rare categorical variables
-    step_normalize(all_numeric_predictors()) %>%  # important standardization step for LASSO
-    step_dummy(all_nominal_predictors()) %>%
-    step_corr(all_numeric_predictors())
-
-# model_wf <- workflow() %>%
-#     add_formula(price ~ .) %>%
-#     add_model(lm_spec)
-
-lasso_wf_tune <- workflow() %>%
-    add_recipe(rideshare_recipe) %>%
-    add_model(lm_lasso_spec)
-```
-
-```{r}
-# fit & tune models
-mod1_cv <- fit_resamples(lasso_wf_tune,
-                         resamples = data_cv17,
-                         metrics = metric_set(rmse, rsq, mae))
 
 penalty_grid <- grid_regular(
     penalty(range = c(-5, 3)), #log10 transformed 10^-5 to 10^3
     levels = 5)
 
+```
+
+```{r}
+# recipes & workflows
+ride_recipe <- recipe(price ~ hour+day+month+distance+temperature, data = rideshare) %>%
+  update_role(all_nominal(), new_role = "ID") %>%
+  update_role(price, new_role = "outcome") %>%
+  update_role(hour,day,month,distance,temperature, new_role = "predictor") %>%
+    step_nzv(all_predictors()) %>% # removes variables with the same value
+    step_novel(all_nominal_predictors()) %>% # important if you have rare categorical variables
+    step_normalize(all_numeric_predictors()) %>%  # important standardization step for LASSO
+    step_dummy(all_nominal_predictors())
+
+lasso_wf_tune <- workflow() %>%
+    add_recipe(ride_recipe) %>%
+    add_model(lm_lasso_spec)
+
+tmp <- fit(lasso_wf_tune, data = rideshare)
+tmp %>% tidy()
+```
+
+```{r}
+# fit & tune models
 tune_res <- tune_grid( # new function for tuning parameters
     lasso_wf_tune, # workflow
-    resamples = data_cv17, # cv folds
+    resamples = cv10, # cv folds
     metrics = metric_set(rmse, mae),
     grid = penalty_grid) # penalty grid defined above
 
 collect_metrics(tune_res) %>%
     filter(.metric == 'rmse') %>% # or choose mae
     select(penalty, rmse = mean)
+
+mod1_cv <- fit_resamples(lasso_wf_tune,
+                         resamples = cv10,
+                         metrics = metric_set(rmse, rsq, mae))
 
 autoplot(tune_res) + theme_classic()
 
