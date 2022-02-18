@@ -74,7 +74,7 @@ nba$`Position Group`[nba$`Position Group`=="Backcourt"] <- 1
 
 ```{r}
 # creation of cv folds
-cv10 <- vfold_cv(college_clean, v = 10)
+cv10 <- vfold_cv(college_clean, v = 8)
 ```
 
 ```{r}
@@ -84,16 +84,29 @@ lm_spec <-
     set_engine(engine = 'lm') %>%
     set_mode('regression')
 
-lm_lasso_spec <-
-    linear_reg() %>%
-    set_args(mixture = 1, penalty = tune()) %>%
-    set_engine(engine = 'glmnet') %>%
-    set_mode('regression')
-
-penalty_grid <- grid_regular(
-    penalty(range = c(-5, 3)), #log10 transformed 10^-5 to 10^3
-    levels = 5)
-
+mod1 <- fit(lm_spec,
+            Grad.Rate ~ S.F.Ratio,
+            data = college_clean)
+mod2 <- fit(lm_spec,
+            Grad.Rate ~ S.F.Ratio + Terminal,
+            data = college_clean)
+mod3 <- fit(lm_spec,
+            Grad.Rate ~  S.F.Ratio + Terminal + Expend,
+            data = college_clean)
+mod4 <- fit(lm_spec,
+            Grad.Rate ~ S.F.Ratio + Terminal + Expend + Room.Board,
+            data = college_clean)
+mod5 <- fit(lm_spec,
+            Grad.Rate ~ S.F.Ratio + Terminal + Expend + Room.Board + Books,
+            data = college_clean)
+college_lm_rec <- recipe(Grad.Rate ~ .,  data = college_clean) %>%
+  step_normalize(all_numeric_predictors())
+coll_wf_ols <- workflow() %>%
+  add_recipe(college_lm_rec) %>%
+  add_model(lm_spec)
+mod8 <- fit(coll_wf_ols,
+            data = college_clean)
+mod8 %>% tidy()
 ```
 
 ```{r}
