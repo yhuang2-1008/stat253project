@@ -1,0 +1,505 @@
+---
+title: "CA House Price Prediction"
+author: Jennifer and Eli
+output: html_document
+---
+
+
+```{r hw2_setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, message = FALSE, warning = FALSE)
+```
+
+
+```{r, warning = FALSE, message = FALSE, echo = FALSE}
+# library statements 
+# read in data
+library(dplyr)
+library(readr)
+library(broom)
+library(ggplot2)
+library(tidymodels)
+library(readxl)
+tidymodels_prefer()
+
+housing <- read_csv("housing.csv") %>% 
+  drop_na()
+```
+
+
+```{r, include = FALSE, warning = FALSE, message = FALSE, echo = FALSE}
+# Re-coding ocean proximity to numeric values 
+
+housing$ocean_proximity[housing$ocean_proximity=="NEAR BAY"] <- 1
+housing$ocean_proximity[housing$ocean_proximity=="<1H OCEAN"] <- 2
+housing$ocean_proximity[housing$ocean_proximity=="NEAR OCEAN"] <- 3
+housing$ocean_proximity[housing$ocean_proximity=="ISLAND"] <- 4
+housing$ocean_proximity[housing$ocean_proximity=="INLAND"] <- 5
+```
+
+
+```{r, creation of cv folds}
+set.seed(123)
+data_cv10<- vfold_cv(housing, v = 10)
+```
+
+
+
+<br><br><br>
+
+## OLS Analysis {-}
+
+
+```{r, OLS model spec}
+lm_spec <-
+    linear_reg() %>%
+    set_engine(engine = 'lm') %>%
+    set_mode('regression')
+```
+
+
+
+### OLS Recipe and Workflow Setup
+
+```{r, OLS recipe + workflow}
+lm_rec <- recipe(median_house_value ~ ., data = housing) %>%
+  step_normalize(all_numeric_predictors())
+
+lm_wf <- workflow() %>%
+  add_recipe(lm_rec) %>%
+  add_model(lm_spec)
+
+housing_lm_wf_1 <- workflow() %>%
+  add_recipe(lm_rec) %>%
+  add_model(lm_spec)%>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_nzv(all_predictors())
+
+housing_lm_wf_2 <- workflow() %>%
+  add_formula(median_house_value ~ median_income)%>%
+  add_model(lm_spec)%>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_nzv(all_predictors())
+
+housing_lm_wf_3 <- workflow() %>%
+  add_formula(median_house_value ~ median_income + longitude)%>%
+  add_model(lm_spec)%>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_nzv(all_predictors())
+
+housing_lm_wf_4 <- workflow() %>%
+  add_formula(median_house_value ~ median_income + longitude + latitude)%>%
+  add_model(lm_spec)%>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_nzv(all_predictors())
+
+housing_lm_wf_5 <- workflow() %>%
+  add_formula(median_house_value ~ median_income + longitude + latitude + total_rooms)%>%
+  add_model(lm_spec)%>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_nzv(all_predictors())
+
+housing_lm_wf_6 <- workflow() %>%
+  add_formula(median_house_value ~ median_income + longitude + latitude + total_rooms + population)%>%
+  add_model(lm_spec)%>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_nzv(all_predictors())
+```
+
+
+### OLS Fit and Tune Model
+
+```{r, OLS: Fit and Tune Model}
+mod1 <- fit(lm_spec,
+            median_house_value ~ .,
+            data = housing)
+mod2 <- fit(lm_spec,
+            median_house_value ~ median_income,
+            data = housing)
+mod3 <- fit(lm_spec,
+            median_house_value ~ median_income + longitude,
+            data = housing)
+mod4 <- fit(lm_spec,
+            median_house_value ~ median_income + longitude + latitude,
+            data = housing)
+mod5 <- fit(lm_spec,
+            median_house_value ~ median_income + longitude + latitude + total_rooms,
+            data = housing)
+mod6 <- fit(lm_spec,
+            median_house_value ~ median_income + longitude + latitude + total_rooms + population,
+            data = housing)
+
+mod1 %>% 
+  tidy() %>% 
+  slice(-1) %>% 
+  mutate(lower = estimate - 1.96*std.error, upper = estimate + 1.96*std.error) %>%
+  ggplot() + 
+    geom_vline(xintercept=0, linetype=4) + 
+    geom_point(aes(x=estimate, y=term)) + 
+    geom_segment(aes(y=term, yend=term, x=lower, xend=upper), 
+                 arrow = arrow(angle=90, ends='both', length = unit(0.1, 'cm'))) + 
+    labs(x = 'Coefficient estimate (95% CI)', y = 'Feature') +
+    theme_classic()
+
+mod1 %>%
+  tidy()
+```
+
+
+```{r, OLS}
+mod1_output <- mod1 %>% 
+    predict(new_data = housing) %>%
+    bind_cols(housing) %>%
+    mutate(resid = median_house_value - .pred)
+
+mod2_output <- mod2 %>% 
+    predict(new_data = housing) %>%
+    bind_cols(housing) %>%
+    mutate(resid = median_house_value - .pred)
+
+mod3_output <- mod3 %>% 
+    predict(new_data = housing) %>%
+    bind_cols(housing) %>%
+    mutate(resid = median_house_value - .pred)
+
+mod4_output <- mod4 %>% 
+    predict(new_data = housing) %>%
+    bind_cols(housing) %>%
+    mutate(resid = median_house_value - .pred)
+
+mod5_output <- mod5 %>% 
+    predict(new_data = housing) %>%
+    bind_cols(housing) %>%
+    mutate(resid = median_house_value - .pred)
+
+mod6_output <- mod6 %>% 
+    predict(new_data = housing) %>%
+    bind_cols(housing) %>%
+    mutate(resid = median_house_value - .pred)
+```
+
+
+
+```{r, OLS setup mae}
+mod1_output %>%
+    mae(truth = median_house_value, estimate = .pred)
+
+mod2_output %>%
+    mae(truth = median_house_value, estimate = .pred)
+
+mod3_output %>%
+    mae(truth = median_house_value, estimate = .pred)
+
+mod4_output %>%
+    mae(truth = median_house_value, estimate = .pred)
+
+mod5_output %>%
+    mae(truth = median_house_value, estimate = .pred)
+
+mod6_output %>%
+    mae(truth = median_house_value, estimate = .pred)
+```
+
+
+
+### OLS Visualize Model
+
+```{r, OLS visualization with mod1 outputs}
+ggplot(mod1_output, aes(y=resid, x=median_house_value)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+#not very useful?
+ggplot(mod1_output, aes(y=resid, x=housing_median_age)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+#not very useful 
+ggplot(mod1_output, aes(y=resid, x=ocean_proximity)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod1_output, aes(y=resid, x=longitude)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod1_output, aes(y=resid, x=latitude)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod1_output, aes(y=resid, x=total_rooms)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod1_output, aes(y=resid, x=median_income)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod1_output, aes(y=resid, x=total_bedrooms)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+```
+
+
+```{r, OLS visualization with mod2 outputs}
+ggplot(mod2_output, aes(y=resid, x=total_rooms)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod2_output, aes(y=resid, x=median_house_value)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod2_output, aes(y=resid, x=longitude)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod2_output, aes(y=resid, x=latitude)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod2_output, aes(y=resid, x=median_income)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod2_output, aes(y=resid, x=population)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+```
+
+
+```{r, OLS Visualization}
+ggplot(mod3_output, aes(y=resid, x=population)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod3_output, aes(y=resid, x=total_rooms)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+
+ggplot(mod6_output, aes(y=resid, x=longitude)) +
+    geom_point() +
+    geom_smooth() +
+    geom_hline(yintercept = 0, color = "red") + 
+    theme_classic()
+```
+
+
+### OLS Calculate and Collect Metrics
+
+```{r, OLS calculate metrics}
+mod1_cv <- fit_resamples(housing_lm_wf_1,
+  resamples = data_cv10, 
+  metrics = metric_set(rmse, rsq, mae))
+  
+  
+mod2_cv <- fit_resamples(housing_lm_wf_2,
+  resamples = data_cv10, 
+  metrics = metric_set(rmse, rsq, mae))
+  
+  
+mod3_cv <- fit_resamples(housing_lm_wf_3,
+  resamples = data_cv10, 
+  metrics = metric_set(rmse, rsq, mae))
+  
+  
+mod4_cv <- fit_resamples(housing_lm_wf_4,
+  resamples = data_cv10, 
+  metrics = metric_set(rmse, rsq, mae))
+  
+  
+mod5_cv <- fit_resamples(housing_lm_wf_5,
+  resamples = data_cv10, 
+  metrics = metric_set(rmse, rsq, mae))
+
+  
+mod6_cv <- fit_resamples(housing_lm_wf_6,
+  resamples = data_cv10, 
+  metrics = metric_set(rmse, rsq, mae))
+```
+
+
+```{r, OLS collect metrics}
+mod1_cv %>% unnest(.metrics) %>%
+  filter(.metric == 'rmse') %>%
+  summarize(RMSE_CV = mean(.estimate))
+
+mod2_cv %>% unnest(.metrics) %>%
+  filter(.metric == 'rmse') %>%
+  summarize(RMSE_CV = mean(.estimate))
+
+mod3_cv %>% unnest(.metrics) %>%
+  filter(.metric == 'rmse') %>%
+  summarize(RMSE_CV = mean(.estimate))
+
+mod4_cv %>% unnest(.metrics) %>%
+  filter(.metric == 'rmse') %>%
+  summarize(RMSE_CV = mean(.estimate))
+
+mod5_cv %>% unnest(.metrics) %>%
+    filter(.metric == 'rmse') %>%
+    summarize(RMSE_CV = mean(.estimate))
+
+mod6_cv %>% unnest(.metrics) %>%
+    filter(.metric == 'rmse') %>%
+    summarize(RMSE_CV = mean(.estimate))
+
+mod1_cv %>% collect_metrics()
+mod2_cv %>% collect_metrics()
+mod3_cv %>% collect_metrics()
+mod4_cv %>% collect_metrics()
+mod5_cv %>% collect_metrics()
+mod6_cv %>% collect_metrics()
+```
+
+
+
+<br><br><br>
+
+## LASSO Analysis {-}
+
+### LASSO Model spec, recipe, and workflow 
+
+```{r, LASSO model spec}
+lasso_spec <- 
+  linear_reg() %>%
+  set_args(mixture = 1, penalty = tune()) %>% ## mixture = 1 indicates Lasso, we'll choose penalty later
+  set_engine(engine = 'glmnet') %>% #note we are using a different engine
+  set_mode('regression') 
+```
+
+
+```{r, lasso recipe + workflow}
+lasso_rec <- recipe(median_house_value ~ median_income + longitude + latitude + total_rooms + population, data = housing) %>%
+    step_nzv(all_predictors()) %>% # removes variables with the same value
+    #step_novel(all_nominal_predictors()) %>% # important if you have rare categorical variables 
+    step_normalize(all_numeric_predictors()) %>%  # important standardization step for LASSO
+    step_dummy(all_nominal_predictors())  # creates indicator variables for categorical variables
+
+lasso_wf <- workflow() %>% 
+  add_recipe(lasso_rec) %>%
+  add_model(lasso_spec)
+```
+
+
+### LASSO Fit and Tune Model
+
+
+```{r, LASSO: Fit and Tune Model}
+# Tune LASSO #1
+penalty_grid <- grid_regular(
+  penalty(range = c(-5, 3)), #log10 transformed 10^-5 to 10^3
+  levels = 30)
+
+# Tune LASSO #2
+tune_res <- tune_grid( # new function for tuning parameters
+  lasso_wf, # workflow
+  resamples = data_cv10, # cv folds
+  metrics = metric_set(rmse, mae),
+  grid = penalty_grid)
+
+# LASSO model
+lasso_fit <- lasso_wf %>% 
+  fit(data = housing) # Fit to data
+```
+
+
+### LASSO Calculate and Collect Metrics
+
+
+```{r, calculate/collect CV metrics}
+# plotting LASSO lambda
+plot(lasso_fit %>% extract_fit_parsnip() %>% pluck('fit'), # way to get the original glmnet output
+     xvar = "lambda")
+
+# Visualize LASSO Metrics from Tuning
+autoplot(tune_res) + theme_classic()
+
+# Summarize LASSO CV Metrics
+collect_metrics(tune_res) %>%
+  filter(.metric == 'rmse') %>% # or choose mae
+  select(penalty, rmse = mean) 
+
+# choose penalty value based on lowest mae or rmse
+best_penalty <- select_best(tune_res, metric = 'rmse') 
+
+# choose penalty value based on the largest penalty within 1 se of the lowest CV MAE
+best_se_penalty <- select_by_one_std_err(tune_res, metric = 'mae', desc(penalty)) 
+
+
+# Fit Final LASSO Models
+final_wf <- finalize_workflow(lasso_wf, best_penalty) # incorporates penalty value to workflow
+final_wf_se <- finalize_workflow(lasso_wf, best_se_penalty) # incorporates penalty value to workflow
+
+
+final_fit <- fit(final_wf, data = housing)
+final_fit_se <- fit(final_wf_se, data = housing)
+
+tidy(final_fit)
+tidy(final_fit_se)
+```
+
+
+### LASSO Visualize residuals 
+
+```{r, LASSO visual residuals}
+lasso_mod_out <- final_fit_se %>%
+    predict(new_data = housing) %>%
+    bind_cols(housing) %>%
+    mutate(resid = median_house_value - .pred)
+
+lasso_mod_out %>% 
+  ggplot(aes(x = .pred, y = resid)) + 
+  geom_point() +
+  geom_smooth(se = FALSE) + 
+  geom_hline(yintercept = 0) + 
+  theme_classic()
+```
+
+
+C.Compare estimated test performance across the models. Which models(s) might you prefer?
+
+D. Use residual plots to evaluate whether some quantitative predictors might be better modeled with nonlinear relationships.
+
+E. Which variables do you think are the most important predictors of your quantitative outcome? Justify your answer. Do the methods you’ve applied reach consensus on which variables are most important? What insights are expected? Surprising?
+Note that if some (but not all) of the indicator terms for a categorical predictor are selected in the final models, the whole predictor should be treated as selected.
+
+
+
