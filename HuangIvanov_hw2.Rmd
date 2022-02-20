@@ -99,11 +99,14 @@ mod4 <- fit(lm_spec,
 mod5 <- fit(lm_spec,
             Grad.Rate ~ S.F.Ratio + Terminal + Expend + Room.Board + Books,
             data = college_clean)
+
 college_lm_rec <- recipe(Grad.Rate ~ .,  data = college_clean) %>%
   step_normalize(all_numeric_predictors())
+
 coll_wf_ols <- workflow() %>%
   add_recipe(college_lm_rec) %>%
   add_model(lm_spec)
+
 mod8 <- fit(coll_wf_ols,
             data = college_clean)
 mod8 %>% tidy()
