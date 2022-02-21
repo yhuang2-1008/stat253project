@@ -407,7 +407,7 @@ lasso_spec <-
 
 
 ```{r, lasso recipe + workflow}
-lasso_rec <- recipe(median_house_value ~ median_income + longitude + latitude + total_rooms + population, data = housing) %>%
+lasso_rec <- recipe(median_house_value ~ ., data = housing) %>%
     step_nzv(all_predictors()) %>% # removes variables with the same value
     #step_novel(all_nominal_predictors()) %>% # important if you have rare categorical variables 
     step_normalize(all_numeric_predictors()) %>%  # important standardization step for LASSO
@@ -495,12 +495,27 @@ lasso_mod_out %>%
 
 
 C.Compare estimated test performance across the models. Which models(s) might you prefer?
- Using the measures calculated using the ordinary least squares. The first model including all the variables is the best. This is also validated using the best lambda measure calculated using lasso. 
+
+$~$
+
+ Using the measures calculated using the ordinary least squares. Also, using the average cross validated rmse model 1 perforomed the bed. The first model including all the variables is the best. This is also validated using the best lambda measure calculated using lasso. 
+ 
+$~$
+ 
 D. Use residual plots to evaluate whether some quantitative predictors might be better modeled with nonlinear relationships.
+
 Using the residual plots, latitude and longitude might be better modeled with a nonlinear relationship. 
+
+$~$
+
 E. Which variables do you think are the most important predictors of your quantitative outcome? Justify your answer. Do the methods you’ve applied reach consensus on which variables are most important? What insights are expected? Surprising?
-The most important predictor according to the lasso is median income. It survives the longest. median income also has the lowest p value. This is not surprising as a higher income would suggest the ability to purchase a more expensive home. Using p value population the relationship observced in population has the second lowest probability of being caused by random chance, however population is one of the first coefficients to go to zero as penalty increases in our lasso model.
+
+The most important predictor according to the lasso is median income. It survives the longest. median income also has the lowest p value. This is not surprising as a higher income would suggest the ability to purchase a more expensive home. Using p value population the relationship observced in population has the second lowest probability of being caused by random chance, however p value is not always the best predictor of which variables to include in the model.
 Note that if some (but not all) of the indicator terms for a categorical predictor are selected in the final models, the whole predictor should be treated as selected.
+
+Portfolio Links:
+Eli: https://docs.google.com/document/d/15rt9RRehvTrdzZk_6s0136uYS9XfJcKhsydsaoY9UvE/edit?usp=sharing
+Jennifer:  https://docs.google.com/document/d/1pu4LnKgN1YVL5-afdVjBd4yFJAI77m-_mTwYq3R0PB4/edit?usp=sharing
 
 
 
