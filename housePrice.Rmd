@@ -459,7 +459,7 @@ collect_metrics(tune_res) %>%
 
 # choose penalty value based on lowest mae or rmse
 best_penalty <- select_best(tune_res, metric = 'rmse') 
-
+best_penalty
 # choose penalty value based on the largest penalty within 1 se of the lowest CV MAE
 best_se_penalty <- select_by_one_std_err(tune_res, metric = 'mae', desc(penalty)) 
 
@@ -495,10 +495,11 @@ lasso_mod_out %>%
 
 
 C.Compare estimated test performance across the models. Which models(s) might you prefer?
-
+ Using the measures calculated using the ordinary least squares. The first model including all the variables is the best. This is also validated using the best lambda measure calculated using lasso. 
 D. Use residual plots to evaluate whether some quantitative predictors might be better modeled with nonlinear relationships.
-
+Using the residual plots, latitude and longitude might be better modeled with a nonlinear relationship. 
 E. Which variables do you think are the most important predictors of your quantitative outcome? Justify your answer. Do the methods you’ve applied reach consensus on which variables are most important? What insights are expected? Surprising?
+The most important predictor according to the lasso is median income. It survives the longest. median income also has the lowest p value. This is not surprising as a higher income would suggest the ability to purchase a more expensive home. Using p value population the relationship observced in population has the second lowest probability of being caused by random chance, however population is one of the first coefficients to go to zero as penalty increases in our lasso model.
 Note that if some (but not all) of the indicator terms for a categorical predictor are selected in the final models, the whole predictor should be treated as selected.
 
 
