@@ -4,6 +4,7 @@ author: Jennifer and Eli
 output: html_document
 ---
 
+[Link to kaggle, where we found our data set](https://www.kaggle.com/camnugent/california-housing-prices)
 
 ```{r hw2_setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE, message = FALSE, warning = FALSE)
@@ -23,6 +24,9 @@ tidymodels_prefer()
 
 housing <- read_csv("housing.csv") %>% 
   drop_na()
+
+set.seed(123)
+data_cv10<- vfold_cv(housing, v = 10)
 ```
 
 
@@ -35,13 +39,6 @@ housing$ocean_proximity[housing$ocean_proximity=="NEAR OCEAN"] <- 3
 housing$ocean_proximity[housing$ocean_proximity=="ISLAND"] <- 4
 housing$ocean_proximity[housing$ocean_proximity=="INLAND"] <- 5
 ```
-
-
-```{r, creation of cv folds}
-set.seed(123)
-data_cv10<- vfold_cv(housing, v = 10)
-```
-
 
 
 <br><br><br>
@@ -398,6 +395,7 @@ mod6_cv %>% collect_metrics()
 ### LASSO Model spec, recipe, and workflow 
 
 ```{r, LASSO model spec}
+
 lasso_spec <- 
   linear_reg() %>%
   set_args(mixture = 1, penalty = tune()) %>% ## mixture = 1 indicates Lasso, we'll choose penalty later
@@ -446,7 +444,9 @@ lasso_fit <- lasso_wf %>%
 
 ```{r, calculate/collect CV metrics}
 # plotting LASSO lambda
-plot(lasso_fit %>% extract_fit_parsnip() %>% pluck('fit'), # way to get the original glmnet output
+plot(lasso_fit %>% 
+       extract_fit_parsnip() %>% 
+       pluck('fit'), # way to get the original glmnet output
      xvar = "lambda")
 
 # Visualize LASSO Metrics from Tuning
@@ -493,29 +493,57 @@ lasso_mod_out %>%
   theme_classic()
 ```
 
+$~$
 
 C.Compare estimated test performance across the models. Which models(s) might you prefer?
 
-$~$
-
- Using the measures calculated using the ordinary least squares. Also, using the average cross validated rmse model 1 perforomed the bed. The first model including all the variables is the best. This is also validated using the best lambda measure calculated using lasso. 
+- Using the measures calculated using the ordinary least squares. Also, using the average cross validated rmse model 1 perforomed the bed. The first model including all the variables is the best. This is also validated using the best lambda measure calculated using lasso. 
  
 $~$
  
 D. Use residual plots to evaluate whether some quantitative predictors might be better modeled with nonlinear relationships.
 
-Using the residual plots, latitude and longitude might be better modeled with a nonlinear relationship. 
+- Latitude and longitude might be better modeled with a nonlinear relationship as there appears to be two spikes in their residual plots. 
 
 $~$
 
 E. Which variables do you think are the most important predictors of your quantitative outcome? Justify your answer. Do the methods you’ve applied reach consensus on which variables are most important? What insights are expected? Surprising?
 
-The most important predictor according to the lasso is median income. It survives the longest. median income also has the lowest p value. This is not surprising as a higher income would suggest the ability to purchase a more expensive home. Using p value population the relationship observced in population has the second lowest probability of being caused by random chance, however p value is not always the best predictor of which variables to include in the model.
-Note that if some (but not all) of the indicator terms for a categorical predictor are selected in the final models, the whole predictor should be treated as selected.
+- The most important predictor according to the lasso is median income. It survives the longest. Median income also has the lowest p value. This is not surprising as a higher income would suggest the neighboring household's ability to purchase a more expensive home. Using p value population the relationship observed in population has the second lowest probability of being caused by random chance. All that's being said, however, p value is not always the best indicator of which variables to include in the model.
 
-Portfolio Links:
-Eli: https://docs.google.com/document/d/15rt9RRehvTrdzZk_6s0136uYS9XfJcKhsydsaoY9UvE/edit?usp=sharing
-Jennifer:  https://docs.google.com/document/d/1pu4LnKgN1YVL5-afdVjBd4yFJAI77m-_mTwYq3R0PB4/edit?usp=sharing
+
+<br><br><br>
+
+### Summarize Investigations 
+
+Decide on an overall best model based on your investigations so far. To do this, make clear your analysis goals. Predictive accuracy? Interpretability? A combination of both?
+
+- The model that contains all of the variables in the data set is the best model so far. Based on the fact that that model yielded the lowest CV test error rate, it seems like taking into account of house age, number of rooms, location, ocean proximity, total bedrooms, population, and income level of that block of houses is important to determine house value. 
+
+- The interpretability of our model is pretty staright forward, though we would like to find out if some individual variables could have more influence on house value and make predictions with that variable. 
+
+$~$
+$~$
+
+### Societal Impact
+
+Are there any harms that may come from your analyses and/or how the data were collected? What cautions do you want to keep in mind when communicating your work?
+
+- The variable `median_income` measures the median income for households within a block of houses. Since this variable seems to be the most persistent in our model, according to our LASSO results, this confirms the seriously large wage gap in the United States. Income affects one's social status, health care access, and even house value. We could further infer from our preliminary analysis that income affects house value because it is more likely that those who have a higher income are not criminals. Where criminal activity is low, housing options there attracts more buyers --- especially buyers of higher social status. 
+
+- The data was derived from Aurélien Géron's book 'Hands-On Machine learning with Scikit-Learn and TensorFlow'. It contains the 1990 California census information, specifically on housing. We don't suspect that the way in which the data was collected is harmful. But we do need to acknowledge that those who did respond to census letters are probably those who have a mailing address and those who are middle to higher income groups. Back in the days, I don't think there census surveys are delivered eletronically and therefore data collection must have had missed people who do not have a mailing address or P.O. box. Additionally, people who are middle to higher income groups would more likely respond to the census because they can read and write English, they might be more informed about the purpose of a census survey, and they might just have more time to attend to a list of questions printed on multiple pages of paper. People who had lower income and probably had to work so many more hours just to meet ends and the census letter could be the last on their minds. And keep in mind that the data set is specifically on California housing, which is arguably one of the more wealthy and liberal states in the US. 
+
+
+
+<br><br><br>
+
+#### Portfolio Links:
+
+- Eli: https://docs.google.com/document/d/15rt9RRehvTrdzZk_6s0136uYS9XfJcKhsydsaoY9UvE/edit?usp=sharing
+
+- Jennifer:  https://docs.google.com/document/d/1pu4LnKgN1YVL5-afdVjBd4yFJAI77m-_mTwYq3R0PB4/edit?usp=sharing
+
+<br><br><br>
 
 
 
