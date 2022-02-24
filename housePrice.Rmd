@@ -423,7 +423,7 @@ lasso_wf <- workflow() %>%
 ```{r, LASSO: Fit and Tune Model}
 # Tune LASSO #1
 penalty_grid <- grid_regular(
-  penalty(range = c(-5, 3)), #log10 transformed 10^-5 to 10^3
+  penalty(range = c(-5,5)), #log10 transformed 10^-5 to 10^3
   levels = 30)
 
 # Tune LASSO #2
@@ -476,6 +476,8 @@ tidy(final_fit)
 tidy(final_fit_se)
 ```
 
+- use estimate to talk abiout how changes in coefficient leads to changes in response variable
+
 
 ### LASSO Visualize residuals 
 
@@ -493,11 +495,13 @@ lasso_mod_out %>%
   theme_classic()
 ```
 
+- there's a straight line cuz of the cap at 500000 for housing value
+
 $~$
 
 C.Compare estimated test performance across the models. Which models(s) might you prefer?
 
-- Using the measures calculated using the ordinary least squares. Also, using the average cross validated rmse model 1 perforomed the bed. The first model including all the variables is the best. This is also validated using the best lambda measure calculated using lasso. 
+- Using the measures calculated using the ordinary least squares. Also, using the average cross validated rmse model 1 performed the bed. The first model including all the variables is the best. This is also validated using the best lambda measure calculated using lasso. 
  
 $~$
  
