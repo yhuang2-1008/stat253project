@@ -549,13 +549,85 @@ Are there any harms that may come from your analyses and/or how the data were co
         - You'll need to update the recipe to include `step_ns()` for each quantitative predictor that you want to allow to be non-linear.
         - To determine number of knots (`deg_free`), I recommend fitting a smoothing spline and use `edf` to inform your choice.
 
-    - Compare insights from variable importance analyses here and the corresponding results from the Investigation 1. Now after having accounted for nonlinearity, have the most relevant predictors changed?
-        - Do you gain any insights from the GAM output plots (easily obtained from fitting smoothing splines) for each predictor?
-        
-    - Compare model performance between your GAM models that the models that assuming linearity.
-        - How does test performance of the GAMs compare to other models you explored?
+```{r}
+# Linear Regression Model Spec
+lm_spec <- 
+  linear_reg() %>%
+  set_engine(engine = 'lm') %>%
+  set_mode('regression') 
 
-    - Don't worry about KNN for now.
+# Original Recipe
+lm_rec <- recipe(median_house_value ~ ., data = housing)
+```
+
+
+
+```{r, GAM}
+gam_spec <- 
+  gen_additive_mod() %>%
+  set_engine(engine = 'mgcv') %>%
+  set_mode('regression') 
+
+gam_mod <- fit(gam_spec,
+    median_house_value ~ ocean_proximity + s(longitude) + s(latitude) + s(housing_median_age) + s(total_rooms) + s(total_bedrooms) + s(population) + s(households) + s(median_income),
+    data = housing)
+```
+
+
+
+```{r, diagnostics}
+par(mfrow=c(2,2))
+gam_mod %>% pluck('fit') %>% mgcv::gam.check() 
+
+gam_mod %>% pluck('fit') %>% summary() 
+```
+
+```{r}
+gam_cv <- fit_resamples(long_rec_wf, )
+```
+
+
+```{r}
+ns_rec <- lm_rec %>%
+  step_ns(longitude, deg_free = 8.9) %>% 
+  step_ns(latitude, deg_free = 8.9) %>% 
+  step_ns(housing_median_age, deg_free = 8.8) %>% 
+  step_ns(total_rooms, deg_free = 7) %>% 
+  step_ns(total_bedrooms, deg_free = 9) %>% 
+  step_ns(households, deg_free = 4.9) %>% 
+  step_ns(population, deg_free = 8.1)
+  
+
+ns_wf <- workflow() %>%
+  add_model(gam_spec) %>%
+  add_recipe(ns_rec)
+
+cv_output <- fit_resamples(
+  ns_wf,
+  resamples = data_cv10, # cv folds
+  metrics = metric_set(mae))
+
+cv_output %>% collect_metrics()
+
+# Fit with all data
+ns_mod <- fit(
+  gam_spec, #workflow
+  data = housing)
+
+```
+
+
+- Compare insights from variable importance analyses here and the corresponding results from the Investigation 1. Now after having accounted for non-linearity, have the most relevant predictors changed?
+
+
+- Do you gain any insights from the GAM output plots (easily obtained from fitting smoothing splines) for each predictor?
+
+
+- Compare model performance between your GAM models that the models that assuming linearity.
+
+
+- How does test performance of the GAMs compare to other models you explored?
+
 
 <br>
 
