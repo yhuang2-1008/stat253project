@@ -538,16 +538,35 @@ Are there any harms that may come from your analyses and/or how the data were co
 - The data was derived from Aurélien Géron's book 'Hands-On Machine learning with Scikit-Learn and TensorFlow'. It contains the 1990 California census information, specifically on housing. We don't suspect that the way in which the data was collected is harmful. But we do need to acknowledge that those who did respond to census letters are probably those who have a mailing address and those who are middle to higher income groups. Back in the days, I don't think there census surveys are delivered eletronically and therefore data collection must have had missed people who do not have a mailing address or P.O. box. Additionally, people who are middle to higher income groups would more likely respond to the census because they can read and write English, they might be more informed about the purpose of a census survey, and they might just have more time to attend to a list of questions printed on multiple pages of paper. People who had lower income and probably had to work so many more hours just to meet ends and the census letter could be the last on their minds. And keep in mind that the data set is specifically on California housing, which is arguably one of the more wealthy and liberal states in the US. 
 
 
-
 <br><br><br>
 
-#### Portfolio Links:
 
-- Eli: https://docs.google.com/document/d/15rt9RRehvTrdzZk_6s0136uYS9XfJcKhsydsaoY9UvE/edit?usp=sharing
+## Project Work {-}
 
-- Jennifer:  https://docs.google.com/document/d/1pu4LnKgN1YVL5-afdVjBd4yFJAI77m-_mTwYq3R0PB4/edit?usp=sharing
+2. **Accounting for nonlinearity**
+    - Update your models to use natural splines for some of the quantitative predictors to account for non-linearity (these are GAMs).
+        - I recommend using OLS engine to fit these final models.
+        - You'll need to update the recipe to include `step_ns()` for each quantitative predictor that you want to allow to be non-linear.
+        - To determine number of knots (`deg_free`), I recommend fitting a smoothing spline and use `edf` to inform your choice.
 
-<br><br><br>
+    - Compare insights from variable importance analyses here and the corresponding results from the Investigation 1. Now after having accounted for nonlinearity, have the most relevant predictors changed?
+        - Do you gain any insights from the GAM output plots (easily obtained from fitting smoothing splines) for each predictor?
+        
+    - Compare model performance between your GAM models that the models that assuming linearity.
+        - How does test performance of the GAMs compare to other models you explored?
+
+    - Don't worry about KNN for now.
+
+<br>
+
+3. **Summarize investigations**
+    - Decide on an overall best model based on your investigations so far. To do this, make clear your analysis goals. Predictive accuracy? Interpretability? A combination of both?
+
+<br>
+
+4. **Societal impact**
+    - Are there any harms that may come from your analyses and/or how the data were collected?
+    - What cautions do you want to keep in mind when communicating your work?
 
 
 
