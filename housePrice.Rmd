@@ -638,9 +638,12 @@ $~$
 
 c. Compare model performance between your GAM models and the models that assumes linearity.
 
+- 
+
 $~$
 
 d. How does test performance of the GAMs compare to other models you explored?
+
 
 
 
