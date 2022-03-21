@@ -454,11 +454,11 @@ autoplot(tune_res) + theme_classic()
 
 # Summarize LASSO CV Metrics
 collect_metrics(tune_res) %>%
-  filter(.metric == 'rmse') %>% # or choose mae
-  select(penalty, rmse = mean) 
+  filter(.metric == 'mae') %>% # or choose mae
+  select(penalty, mae = mean) 
 
 # choose penalty value based on lowest mae or rmse
-best_penalty <- select_best(tune_res, metric = 'rmse') 
+best_penalty <- select_best(tune_res, metric = 'mae') 
 best_penalty
 # choose penalty value based on the largest penalty within 1 se of the lowest CV MAE
 best_se_penalty <- select_by_one_std_err(tune_res, metric = 'mae', desc(penalty)) 
@@ -644,7 +644,12 @@ $~$
 
 d. How does test performance of the GAMs compare to other models you explored?
 
+Below are the MAEs yeilded from our models thus far: 
+1) OLS: 49797.67
+2) LASSO: 49791.43	
+3) GAMs: 44580.23
 
+- Our GAMs model's test performance is better than those of OLS and LASSO. Variables such as longitude, latitude, total_rooms, and population had non-linear trends so GAMs being able to account for that resulted in a better MAE. 
 
 
 <br>
@@ -657,8 +662,21 @@ d. How does test performance of the GAMs compare to other models you explored?
 <br>
 
 4. **Societal impact**
-    - Are there any harms that may come from your analyses and/or how the data were collected?
-    - What cautions do you want to keep in mind when communicating your work?
+
+Are there any harms that may come from your analyses and/or how the data were collected?
+
+- Things that we had previously discussed in HW2 still holds true for our investigation in HW3. Median_income is still the most influencial predictor for house price and has the greatest magnitude of effect. This confirms the wage gap in the United States and how that affects one's social status, health care access, and real estae value. 
+
+$~$ 
+
+What cautions do you want to keep in mind when communicating your work?
+
+- We want to be cautious that our analyses from this dataset does not apply to all of the state of California. This data likely only applies to the wealthier regions of the Claifornia. Additionally, our dataset does not have information regarding the race/ethnicity and education level of the homeowner. These two variables would likely reveal disparaties in house value despite being in a wealth California region. And we also need to keep in mind of the nature of census data. People who respond to census are either aware of the use of census data, have a mailing address, or both. 
+
+
+
+<br><br><br>
+
 
 
 
