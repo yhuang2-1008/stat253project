@@ -655,8 +655,10 @@ Below are the MAEs yeilded from our models thus far:
 <br>
 
 3. **Summarize investigations**
-    - Decide on an overall best model based on your investigations so far. To do this, make clear your analysis goals. Predictive accuracy? Interpretability? A combination of both?
 
+Decide on an overall best model based on your investigations so far. To do this, make clear your analysis goals. Predictive accuracy? Interpretability? A combination of both?
+
+- The best model so far is our GAMs model because it has the best accuracy since it accommodates for non-linearity, which OLS and LASSO couldn't. GAMs model is also not any less interpretable than the previous two models because we could hold all variables constant and see the individual effect that each variable has on our house value prediction. 
 
 
 <br>
@@ -665,13 +667,13 @@ Below are the MAEs yeilded from our models thus far:
 
 Are there any harms that may come from your analyses and/or how the data were collected?
 
-- Things that we had previously discussed in HW2 still holds true for our investigation in HW3. Median_income is still the most influencial predictor for house price and has the greatest magnitude of effect. This confirms the wage gap in the United States and how that affects one's social status, health care access, and real estae value. 
+- Things that we had previously discussed in HW2 still holds true for our investigation in HW3. Median_income is still the most influencial predictor for house price and has the greatest magnitude of effect. This confirms the wage gap in the United States and how that affects one's social status, health care access, and real estate value. 
 
 $~$ 
 
 What cautions do you want to keep in mind when communicating your work?
 
-- We want to be cautious that our analyses from this dataset does not apply to all of the state of California. This data likely only applies to the wealthier regions of the Claifornia. Additionally, our dataset does not have information regarding the race/ethnicity and education level of the homeowner. These two variables would likely reveal disparaties in house value despite being in a wealth California region. And we also need to keep in mind of the nature of census data. People who respond to census are either aware of the use of census data, have a mailing address, or both. 
+- We want to be cautious that our analyses from this dataset does not apply to all of the state of California. This data likely only applies to the wealthier regions of the CA Additionally, our dataset does not have information regarding the race/ethnicity and education level of the homeowner. These two variables would likely reveal disparaties in house value despite being in a wealth California region. And we also need to keep in mind of the nature of census data. People who respond to census are either aware of the use of census data, have a mailing address, or both. 
 
 
 
