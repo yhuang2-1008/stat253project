@@ -626,7 +626,7 @@ $~$
 
 b. Do you gain any insights from the GAM output plots (easily obtained from fitting smoothing splines) for each predictor?
 
-- 
+- The GAM output plots show us that total_rooms, total_bedrooms, households, and population become less accurate in predicting near the upper ends. Population seems to be the least accurate in predicting using smoothing splines.
 
 ```{r}
 gam_mod %>% pluck('fit') %>% plot(page = 1)
@@ -638,7 +638,7 @@ $~$
 
 c. Compare model performance between your GAM models and the models that assumes linearity.
 
-- 
+- Using MAE as our performance metric our GAM model is better than the model that assumes linearity using the same variables.
 
 $~$
 
