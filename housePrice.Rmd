@@ -680,5 +680,36 @@ What cautions do you want to keep in mind when communicating your work?
 <br><br><br>
 
 
+### Project Work for HW 4 {-}
+
+
+1. Specify the research question for a classification task.
+
+2. Try to implement at least 2 different classification methods to answer your research question.
+
+3. Reflect on the information gained from these two methods and how you might justify this method to others.
+
+Keep in mind that the final project will require you to complete the pieces below. Use this as a guide for your work but don’t try to accomplish everything for HW4:
+
+Classification - Methods
+- Indicate at least 2 different methods used to answer your classification research question.
+- Describe what you did to evaluate the models explored.
+- Indicate how you estimated quantitative evaluation metrics.
+- Describe the goals / purpose of the methods used in the overall context of your research investigations.
+
+
+Classification - Results
+- Summarize your final model and justify your model choice (see below for ways to justify your choice).
+- Compare the different classification models tried in light of evaluation metrics, variable importance, and data context.
+- Display evaluation metrics for different models in a clean, organized way. This display should include both the estimated metric as well as its standard deviation. (This won’t be available from OOB error estimation. If using OOB, don’t worry about reporting the SD.)
+- Broadly summarize conclusions from looking at these evaluation metrics and their measures of uncertainty.
+
+
+Classification - Conclusions 
+- Interpret evaluation metric(s) for the final model in context. Does the model show an acceptable amount of error? 
+- If using OOB error estimation, display the test (OOB) confusion matrix, and use it to interpret the strengths and weaknesses of the final model. 
+- Summarization should show evidence of acknowledging the data context in thinking about the sensibility of these results.
+
+
 
 
