@@ -685,7 +685,15 @@ What cautions do you want to keep in mind when communicating your work?
 
 1. Specify the research question for a classification task.
 
+- Could the median income of the home owner and population of the community predict house value?
+
+$~$
+
 2. Try to implement at least 2 different classification methods to answer your research question.
+
+- Decision tree and K-means clustering
+
+$~$
 
 3. Reflect on the information gained from these two methods and how you might justify this method to others.
 
@@ -710,6 +718,94 @@ Classification - Conclusions
 - If using OOB error estimation, display the test (OOB) confusion matrix, and use it to interpret the strengths and weaknesses of the final model. 
 - Summarization should show evidence of acknowledging the data context in thinking about the sensibility of these results.
 
+<br><br>
 
 
+#### K-Means Clustering on Housing Data
+
+Set up K-Means by selecting variables that had the most influence based on previous data analysis (i.e., HW2)
+
+```{r}
+housing_popIncome <- housing %>% 
+  select(population, median_income)
+
+housing_bedroomAge <- housing %>% 
+  select(housing_median_age, total_bedrooms)
+
+set.seed(620)
+```
+
+
+$~$
+
+
+Create kclust variable for median income and population and graph it
+
+```{r}
+kclust_k3 <- kmeans(housing_popIncome, centers = 3)
+kclust_k3_scale <- kmeans(scale(housing_popIncome), centers = 3)
+
+housing_PI <- housing %>%
+  mutate(kclust_3 = factor(kclust_k3$cluster)) %>% 
+  mutate(kclust_3_scale = factor(kclust_k3_scale$cluster))
+
+ggplot(housing_PI, aes(x = population, y = median_income, color = kclust_3)) +
+  geom_point() +
+  labs(title = "K-Means clustering on median income and population") +
+  theme_classic()
+
+ggplot(housing_PI, aes(x = population, y = median_income, color = kclust_3_scale)) +
+  geom_point() +
+  labs(title = "K-Means with scaled clustering on median income and population") +
+  theme_classic()
+
+summary(housing_popIncome)
+```
+
+
+$~$
+
+
+#### Exploring K-Means clustering for other variables: total bedrooms and house age
+
+```{r}
+kclust_k3_BA <- kmeans(housing_bedroomAge, centers = 3)
+kclust_k3_scale_BA <- kmeans(scale(housing_bedroomAge), centers = 3)
+
+housing_BA <- housing %>%
+  mutate(kclust_3_BA = factor(kclust_k3_BA$cluster)) %>% 
+  mutate(kclust_3_scale_BA = factor(kclust_k3_scale_BA$cluster))
+
+ggplot(housing_BA, aes(x = total_bedrooms, y = housing_median_age, color = kclust_3_BA)) +
+  geom_point() +
+  labs(title = "K-Means clustering on number of bedrooms and house median age") +
+  theme_classic()
+
+ggplot(housing_BA, aes(x = total_bedrooms, y = housing_median_age, color = kclust_3_scale_BA)) +
+  geom_point() +
+  labs(title = "K-Means with scaled clustering on number of bedrooms and house median age") +
+  theme_classic()
+
+summary(housing_bedroomAge)
+```
+
+
+$~$
+
+Interpret K-Means results
+
+- Between the two K-Means Clustering, the two most persistent variables, median income and population, does not seem to relate to one another when we look at their clusters. Median income may increase, so does population, but that does not necessarily mean that houses in those categories have higher predicted value. 
+
+- On the contrary, number of bedrooms and median house age seem to relate to one another more. Houses that are newer have more bedrooms and have a pretty good house value. 
+
+
+```{r}
+housing_PI %>%
+    group_by(kclust_3_scale) %>%
+    summarize(across(c(median_income, population, median_house_value), mean))
+
+housing_BA %>%
+    group_by(kclust_3_scale) %>%
+    summarize(across(c(housing_median_age, total_bedrooms, median_house_value), mean))
+```
 
