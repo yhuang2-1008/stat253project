@@ -626,7 +626,11 @@ $~$
 
 b. Do you gain any insights from the GAM output plots (easily obtained from fitting smoothing splines) for each predictor?
 
+<<<<<<< HEAD
 - the GAM output plots show us that total_rooms, total_bedrooms, households, and population become less accurate in predicting near the upper ends. Population seems to be the least accurate in predicting using smoothing splines.
+=======
+- The GAM output plots show us that total_rooms, total_bedrooms, households, and population become less accurate in predicting near the upper ends. Population seems to be the least accurate in predicting using smoothing splines.
+>>>>>>> 2f4df9723325062f19aa1e62eeb1be1cedd684aa
 
 ```{r}
 gam_mod %>% pluck('fit') %>% plot(page = 1)
@@ -655,8 +659,10 @@ Below are the MAEs yeilded from our models thus far:
 <br>
 
 3. **Summarize investigations**
-    - Decide on an overall best model based on your investigations so far. To do this, make clear your analysis goals. Predictive accuracy? Interpretability? A combination of both?
 
+Decide on an overall best model based on your investigations so far. To do this, make clear your analysis goals. Predictive accuracy? Interpretability? A combination of both?
+
+- The best model so far is our GAMs model because it has the best accuracy since it accommodates for non-linearity, which OLS and LASSO couldn't. GAMs model is also not any less interpretable than the previous two models because we could hold all variables constant and see the individual effect that each variable has on our house value prediction. 
 
 
 <br>
@@ -665,18 +671,197 @@ Below are the MAEs yeilded from our models thus far:
 
 Are there any harms that may come from your analyses and/or how the data were collected?
 
-- Things that we had previously discussed in HW2 still holds true for our investigation in HW3. Median_income is still the most influencial predictor for house price and has the greatest magnitude of effect. This confirms the wage gap in the United States and how that affects one's social status, health care access, and real estae value. 
+- Things that we had previously discussed in HW2 still holds true for our investigation in HW3. Median_income is still the most influencial predictor for house price and has the greatest magnitude of effect. This confirms the wage gap in the United States and how that affects one's social status, health care access, and real estate value. 
 
 $~$ 
 
 What cautions do you want to keep in mind when communicating your work?
 
-- We want to be cautious that our analyses from this dataset does not apply to all of the state of California. This data likely only applies to the wealthier regions of the Claifornia. Additionally, our dataset does not have information regarding the race/ethnicity and education level of the homeowner. These two variables would likely reveal disparaties in house value despite being in a wealth California region. And we also need to keep in mind of the nature of census data. People who respond to census are either aware of the use of census data, have a mailing address, or both. 
+- We want to be cautious that our analyses from this dataset does not apply to all of the state of California. This data likely only applies to the wealthier regions of the CA Additionally, our dataset does not have information regarding the race/ethnicity and education level of the homeowner. These two variables would likely reveal disparaties in house value despite being in a wealth California region. And we also need to keep in mind of the nature of census data. People who respond to census are either aware of the use of census data, have a mailing address, or both. 
 
 
 
 <br><br><br>
 
 
+### Project Work for HW 4 {-}
 
+
+1. Specify the research question for a classification task.
+
+- Could the median income of the home owner and population of the community predict house value?
+
+$~$
+
+2. Try to implement at least 2 different classification methods to answer your research question.
+
+- Decision tree and K-means clustering
+
+$~$
+
+3. Reflect on the information gained from these two methods and how you might justify this method to others.
+
+Keep in mind that the final project will require you to complete the pieces below. Use this as a guide for your work but don’t try to accomplish everything for HW4:
+
+Classification - Methods
+- Indicate at least 2 different methods used to answer your classification research question.
+- Describe what you did to evaluate the models explored.
+- Indicate how you estimated quantitative evaluation metrics.
+- Describe the goals / purpose of the methods used in the overall context of your research investigations.
+
+
+Classification - Results
+- Summarize your final model and justify your model choice (see below for ways to justify your choice).
+- Compare the different classification models tried in light of evaluation metrics, variable importance, and data context.
+- Display evaluation metrics for different models in a clean, organized way. This display should include both the estimated metric as well as its standard deviation. (This won’t be available from OOB error estimation. If using OOB, don’t worry about reporting the SD.)
+- Broadly summarize conclusions from looking at these evaluation metrics and their measures of uncertainty.
+
+
+Classification - Conclusions 
+- Interpret evaluation metric(s) for the final model in context. Does the model show an acceptable amount of error? 
+- If using OOB error estimation, display the test (OOB) confusion matrix, and use it to interpret the strengths and weaknesses of the final model. 
+- Summarization should show evidence of acknowledging the data context in thinking about the sensibility of these results.
+
+<br><br>
+
+
+#### K-Means Clustering on Housing Data
+
+Set up K-Means by selecting variables that had the most influence based on previous data analysis (i.e., HW2)
+
+```{r}
+housing_popIncome <- housing %>% 
+  select(population, median_income)
+
+housing_bedroomAge <- housing %>% 
+  select(housing_median_age, total_bedrooms)
+
+set.seed(620)
+```
+
+
+$~$
+
+
+Create kclust variable for median income and population and graph it
+
+```{r}
+kclust_k3 <- kmeans(housing_popIncome, centers = 3)
+kclust_k3_scale <- kmeans(scale(housing_popIncome), centers = 3)
+
+housing_PI <- housing %>%
+  mutate(kclust_3 = factor(kclust_k3$cluster)) %>% 
+  mutate(kclust_3_scale = factor(kclust_k3_scale$cluster))
+
+ggplot(housing_PI, aes(x = population, y = median_income, color = kclust_3)) +
+  geom_point() +
+  labs(title = "K-Means clustering on median income and population") +
+  theme_classic()
+
+ggplot(housing_PI, aes(x = population, y = median_income, color = kclust_3_scale)) +
+  geom_point() +
+  labs(title = "K-Means with scaled clustering on median income and population") +
+  theme_classic()
+
+summary(housing_popIncome)
+```
+
+
+$~$
+
+
+#### Exploring K-Means clustering for other variables: total bedrooms and house age
+
+```{r}
+kclust_k3_BA <- kmeans(housing_bedroomAge, centers = 3)
+kclust_k3_scale_BA <- kmeans(scale(housing_bedroomAge), centers = 3)
+
+housing_BA <- housing %>%
+  mutate(kclust_3_BA = factor(kclust_k3_BA$cluster)) %>% 
+  mutate(kclust_3_scale_BA = factor(kclust_k3_scale_BA$cluster))
+
+ggplot(housing_BA, aes(x = total_bedrooms, y = housing_median_age, color = kclust_3_BA)) +
+  geom_point() +
+  labs(title = "K-Means clustering on number of bedrooms and house median age") +
+  theme_classic()
+
+ggplot(housing_BA, aes(x = total_bedrooms, y = housing_median_age, color = kclust_3_scale_BA)) +
+  geom_point() +
+  labs(title = "K-Means with scaled clustering on number of bedrooms and house median age") +
+  theme_classic()
+
+summary(housing_bedroomAge)
+```
+
+
+$~$
+
+Interpret K-Means results
+
+- Between the two K-Means Clustering, the two most persistent variables, median income and population, does not seem to relate to one another when we look at their clusters. Median income may increase, so does population, but that does not necessarily mean that houses in those categories have higher predicted value. 
+
+- On the contrary, number of bedrooms and median house age seem to relate to one another more. Houses that are newer have more bedrooms and have a pretty good house value. 
+
+
+```{r}
+housing_PI %>%
+    group_by(kclust_3_scale) %>%
+    summarize(across(c(median_income, population, median_house_value), mean))
+
+housing_BA %>%
+    group_by(kclust_3_scale) %>%
+    summarize(across(c(housing_median_age, total_bedrooms, median_house_value), mean))
+```
+
+
+
+#### Decision Trees
+
+```{r}
+# Make sure you understand what each line of code is doing
+set.seed(123) # don't change this
+
+data_fold <- vfold_cv(housing, v = 10)
+
+ct_spec_tune <- decision_tree() %>%
+  set_engine(engine = 'rpart') %>%
+  set_args(cost_complexity = tune(),  
+           min_n = 2, 
+           tree_depth = NULL) %>% 
+  set_mode('classification') 
+
+data_rec <- recipe(ocean_proximity ~ ., data = housing)
+
+data_wf_tune <- workflow() %>%
+  add_model(ct_spec_tune) %>%
+  add_recipe(data_rec)
+
+param_grid <- grid_regular(cost_complexity(range = c(-5, 1)), levels = 10) 
+
+tune_res <- tune_grid(
+  data_wf_tune, 
+  resamples = data_fold, 
+  grid = param_grid, 
+  metrics = metric_set(accuracy) #change this for regression trees
+)
+```
+
+
+
+
+```{r}
+best_complexity <- select_by_one_std_err(tune_res, metric = 'accuracy', desc(cost_complexity))
+data_wf_final <- finalize_workflow(data_wf_tune, best_complexity)
+
+housing_final_fit <- fit(data_wf_final, data = housing)
+
+
+tune_res %>% 
+  collect_metrics() %>%
+  filter(cost_complexity == best_complexity$cost_complexity)
+```
+```{r}
+
+housing_final_fit %>% extract_fit_engine() %>% rpart.plot()
+```
 
