@@ -803,7 +803,7 @@ Interpret K-Means results
 - On the contrary, number of bedrooms and median house age seem to relate to one another more. Houses that are newer have more bedrooms and have a pretty good house value. 
 
 
-```{r}
+```{r, eval=FALSE}
 housing_PI %>%
     group_by(kclust_3_scale) %>%
     summarize(across(c(median_income, population, median_house_value), mean))
@@ -860,7 +860,7 @@ tune_res %>%
   collect_metrics() %>%
   filter(cost_complexity == best_complexity$cost_complexity)
 ```
-```{r}
+```{r, eval = FALSE}
 
 housing_final_fit %>% extract_fit_engine() %>% rpart.plot()
 ```
